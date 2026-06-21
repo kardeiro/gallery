@@ -26,7 +26,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
-          validate-wrapper-jar: false
+          validate-wrappers: false
 
       - name: Build APK Debug
         run: gradle assembleDebug
