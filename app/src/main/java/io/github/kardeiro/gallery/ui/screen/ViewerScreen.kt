@@ -46,6 +46,7 @@ import androidx.core.content.FileProvider
 import androidx.media3.common.MediaItem as Media3Item
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import io.github.kardeiro.gallery.R
@@ -212,7 +213,7 @@ private fun VideoPlayer(
 
     AndroidView(
         factory = { ctx ->
-            androidx.media3.ui.PlayerView(ctx).apply {
+            PlayerView(ctx).apply {
                 this.player = player
                 useController = true
                 setShowNextButton(false)
