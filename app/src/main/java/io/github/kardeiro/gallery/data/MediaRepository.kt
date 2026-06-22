@@ -7,7 +7,9 @@ import android.provider.MediaStore
 import io.github.kardeiro.gallery.data.model.Album
 import io.github.kardeiro.gallery.data.model.MediaItem
 
-class MediaRepository(private val context: Context) {
+class MediaRepository(context: Context) {
+
+    private val appContext = context.applicationContext
 
     private var cachedMedia: List<MediaItem>? = null
 
@@ -44,7 +46,7 @@ class MediaRepository(private val context: Context) {
 
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        context.contentResolver.query(
+        appContext.contentResolver.query(
             uri,
             projection.toTypedArray(),
             null,
@@ -103,7 +105,7 @@ class MediaRepository(private val context: Context) {
 
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        context.contentResolver.query(
+        appContext.contentResolver.query(
             uri,
             projection,
             null,
@@ -174,7 +176,7 @@ class MediaRepository(private val context: Context) {
 
     fun deleteMedia(uri: Uri): Boolean {
         return try {
-            val deleted = context.contentResolver.delete(uri, null, null) > 0
+            val deleted = appContext.contentResolver.delete(uri, null, null) > 0
             if (deleted) cachedMedia = null
             deleted
         } catch (_: SecurityException) {

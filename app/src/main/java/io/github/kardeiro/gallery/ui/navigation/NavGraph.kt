@@ -1,11 +1,14 @@
 package io.github.kardeiro.gallery.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.ui.screen.AlbumScreen
 import io.github.kardeiro.gallery.ui.screen.GalleryScreen
 import io.github.kardeiro.gallery.ui.screen.AlbumDetailScreen
@@ -24,7 +27,9 @@ object Routes {
 
 @Composable
 fun NavGraph() {
+    val context = LocalContext.current
     val navController = rememberNavController()
+    val repository = remember { MediaRepository(context) }
 
     NavHost(
         navController = navController,
@@ -32,6 +37,7 @@ fun NavGraph() {
     ) {
         composable(Routes.GALLERY) {
             GalleryScreen(
+                repository = repository,
                 onNavigateToAlbums = {
                     navController.navigate(Routes.ALBUMS)
                 },
@@ -43,6 +49,7 @@ fun NavGraph() {
 
         composable(Routes.ALBUMS) {
             AlbumScreen(
+                repository = repository,
                 onNavigateToAlbum = { bucketId, bucketName ->
                     navController.navigate(Routes.albumRoute(bucketId, bucketName))
                 },
@@ -60,6 +67,7 @@ fun NavGraph() {
             val bucketId = backStackEntry.arguments?.getString("bucketId") ?: return@composable
             val bucketName = backStackEntry.arguments?.getString("bucketName") ?: return@composable
             AlbumDetailScreen(
+                repository = repository,
                 bucketId = bucketId,
                 bucketDisplayName = bucketName,
                 onBack = { navController.popBackStack() },
@@ -78,6 +86,7 @@ fun NavGraph() {
             val index = backStackEntry.arguments?.getInt("index") ?: 0
             val bucketId = backStackEntry.arguments?.getString("bucketId")
             ViewerScreen(
+                repository = repository,
                 initialIndex = index,
                 bucketId = bucketId,
                 onBack = { navController.popBackStack() }

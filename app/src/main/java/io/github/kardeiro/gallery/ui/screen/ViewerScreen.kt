@@ -1,7 +1,6 @@
 package io.github.kardeiro.gallery.ui.screen
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import java.util.Locale
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem as Media3Item
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
@@ -62,12 +60,12 @@ import io.github.kardeiro.gallery.data.model.MediaType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViewerScreen(
+    repository: MediaRepository,
     initialIndex: Int,
     bucketId: String? = null,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val repository = remember { MediaRepository(context) }
     var mediaItems by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     var showBars by remember { mutableStateOf(true) }
     var showInfoDialog by remember { mutableStateOf(false) }

@@ -22,13 +22,18 @@ fully before starting, honor its STOP conditions, and update your row when done.
 | 012  | Implement MediaInfoDialog in ViewerScreen | P2 | S | — | DONE ✅ |
 | 013  | Tap-to-toggle UI bars in ViewerScreen | P2 | S | — | DONE ✅ |
 | 014  | Delete confirmation dialog | P1 | XS | — | DONE ✅ |
+| 015  | Request READ_MEDIA_VIDEO permission on Android 13+ | P1 | XS | — | DONE ✅ |
+| 016  | Share one MediaRepository instance across screens | P1 | S | — | DONE ✅ |
+| 017  | Move MediaStore queries off the main thread | P1 | S | 016 | TODO |
+| 018  | Remember Coil ImageRequest objects in media composables | P2 | S | — | TODO |
+| 019  | Defer ExoPlayer creation to the visible video page | P2 | S | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 
 ## Dependency notes
 
-(No dependencies yet — all stand alone.)
+- 017 should follow 016 so the coroutine/threading change is applied once to the shared data layer instead of duplicated across per-screen repository instances.
 
 ## Findings considered and rejected
 
-(No rejected findings yet.)
+- Removing all Coil crossfade globally was considered but rejected for now: `GalleryScreen` and `AlbumDetailScreen` already avoid per-request crossfade for dense grids, and the remaining app-level default has lower measured leverage than avoiding repeated MediaStore scans, main-thread queries, and off-screen video player setup.

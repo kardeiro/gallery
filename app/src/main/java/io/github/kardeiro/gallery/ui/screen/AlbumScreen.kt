@@ -47,11 +47,10 @@ import io.github.kardeiro.gallery.data.model.Album
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumScreen(
+    repository: MediaRepository,
     onNavigateToAlbum: (String, String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val repository = remember { MediaRepository(context) }
     var albums by remember { mutableStateOf<List<Album>>(emptyList()) }
 
     LaunchedEffect(Unit) {

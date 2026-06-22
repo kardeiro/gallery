@@ -42,13 +42,13 @@ import io.github.kardeiro.gallery.data.model.MediaItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailScreen(
+    repository: MediaRepository,
     bucketId: String,
     bucketDisplayName: String,
     onBack: () -> Unit,
     onNavigateToViewer: (Int) -> Unit,
 ) {
     val context = LocalContext.current
-    val repository = remember { MediaRepository(context) }
     var mediaItems by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     val idIndexMap = remember(mediaItems) {
         mediaItems.withIndex().associate { (index, item) -> item.id to index }
