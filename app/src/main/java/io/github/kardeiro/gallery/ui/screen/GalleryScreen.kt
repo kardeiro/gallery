@@ -59,6 +59,9 @@ import coil.request.ImageRequest
 import io.github.kardeiro.gallery.R
 import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
+import io.github.kardeiro.gallery.data.model.MediaType
+import java.util.Locale
+import io.github.kardeiro.gallery.data.model.MediaItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -229,9 +232,25 @@ private fun MediaThumbnail(
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         )
+        if (item.mediaType == MediaType.VIDEO) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .background(
+                        color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f),
+                        shape = MaterialTheme.shapes.small
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = formatDuration(item.duration),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
     }
 }
 
@@ -307,4 +326,12 @@ private fun EmptyGalleryPlaceholder() {
             )
         }
     }
+}
+
+private fun formatDuration(durationMs: Long?): String {
+    if (durationMs == null || durationMs <= 0) return ""
+    val totalSeconds = (durationMs / 1000).toInt()
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(Locale.US, "%d:%02d", minutes, seconds)
 }

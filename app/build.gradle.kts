@@ -55,5 +55,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.androidx.media3.exoplayer)
     debugImplementation(libs.androidx.ui.tooling)
 }

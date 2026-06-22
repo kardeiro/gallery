@@ -40,12 +40,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
+import androidx.media3.common.MediaItem as Media3Item
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import io.github.kardeiro.gallery.R
 import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
+import io.github.kardeiro.gallery.data.model.MediaType
 import kotlinx.coroutines.coroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,7 +129,11 @@ fun ViewerScreen(
                 .padding(innerPadding)
         ) { page ->
             val item = mediaItems[page]
-            ZoomableImage(item = item)
+            if (item.mediaType == MediaType.VIDEO) {
+                VideoPlayer(item = item, isVisible = page == pagerState.currentPage)
+            } else {
+                ZoomableImage(item = item)
+            }
         }
     }
 }
@@ -171,4 +180,44 @@ private fun ZoomableImage(item: MediaItem) {
                 )
         )
     }
+}
+
+@Composable
+private fun VideoPlayer(
+    item: MediaItem,
+    isVisible: Boolean,
+) {
+    val context = LocalContext.current
+    val player = remember {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(Media3Item.fromUri(item.uri))
+            prepare()
+            playWhenReady = isVisible
+        }
+    }
+
+    DisposableEffect(isVisible) {
+        player.playWhenReady = isVisible
+        onDispose {
+            player.playWhenReady = false
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            player.release()
+        }
+    }
+
+    AndroidView(
+        factory = { ctx ->
+            androidx.media3.ui.PlayerView(ctx).apply {
+                this.player = player
+                useController = true
+                setShowNextButton(false)
+                setShowPreviousButton(false)
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }

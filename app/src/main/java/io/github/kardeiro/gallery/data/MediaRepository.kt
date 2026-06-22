@@ -12,12 +12,13 @@ import io.github.kardeiro.gallery.data.model.MediaItem
 class MediaRepository(private val context: Context) {
 
     fun loadMedia(): List<MediaItem> {
+        val images = queryMedia(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null)
+        val videos = queryMedia(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DURATION)
+        return (images + videos).sortedByDescending { it.dateTaken }
+    }
+
+    private fun queryMedia(uri: Uri, durationColName: String?): List<MediaItem> {
         val items = mutableListOf<MediaItem>()
-        val collection = if (Environment.isExternalStorageLegacy()) {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        } else {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        }
 
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
@@ -36,7 +37,7 @@ class MediaRepository(private val context: Context) {
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
         context.contentResolver.query(
-            collection,
+            uri,
             projection,
             null,
             null,
@@ -52,20 +53,18 @@ class MediaRepository(private val context: Context) {
             val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
             val latCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.LATITUDE)
             val lngCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.LONGITUDE)
+            val durationCol = durationColName?.let { cursor.getColumnIndexOrThrow(it) }
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
-                val mimeType = cursor.getString(mimeCol)
-                val contentUri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
-                )
+                val contentUri = ContentUris.withAppendedId(uri, id)
 
                 items.add(
                     MediaItem(
                         id = id,
                         uri = contentUri,
                         thumbUri = contentUri,
-                        mimeType = mimeType,
+                        mimeType = cursor.getString(mimeCol),
                         dateTaken = cursor.getLong(dateCol),
                         bucketId = cursor.getString(bucketIdCol),
                         bucketDisplayName = cursor.getString(bucketNameCol),
@@ -74,6 +73,9 @@ class MediaRepository(private val context: Context) {
                         size = cursor.getLong(sizeCol),
                         latitude = if (!cursor.isNull(latCol)) cursor.getDouble(latCol) else null,
                         longitude = if (!cursor.isNull(lngCol)) cursor.getDouble(lngCol) else null,
+                        duration = durationCol?.let { col ->
+                            if (!cursor.isNull(col)) cursor.getLong(col) else null
+                        },
                     )
                 )
             }
