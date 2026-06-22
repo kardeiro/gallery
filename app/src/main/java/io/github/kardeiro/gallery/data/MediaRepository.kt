@@ -3,23 +3,29 @@ package io.github.kardeiro.gallery.data
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
-import androidx.core.database.getStringOrNull
 import io.github.kardeiro.gallery.data.model.Album
 import io.github.kardeiro.gallery.data.model.MediaItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class MediaRepository(private val context: Context) {
+class MediaRepository(context: Context) {
+
+    private val appContext = context.applicationContext
 
     private var cachedMedia: List<MediaItem>? = null
 
-    fun loadMedia(): List<MediaItem> {
-        if (cachedMedia != null) return cachedMedia!!
+    suspend fun loadMedia(): List<MediaItem> {
+        cachedMedia?.let { return it }
 
-        val images = queryMedia(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null)
-        val videos = queryMedia(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DURATION)
-        return (images + videos).sortedByDescending { it.dateTaken }
-            .also { cachedMedia = it }
+        return withContext(Dispatchers.IO) {
+            cachedMedia?.let { return@withContext it }
+
+            val images = queryMedia(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null)
+            val videos = queryMedia(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DURATION)
+            (images + videos).sortedByDescending { it.dateTaken }
+                .also { cachedMedia = it }
+        }
     }
 
     fun invalidateCache() {
@@ -46,7 +52,7 @@ class MediaRepository(private val context: Context) {
 
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        context.contentResolver.query(
+        appContext.contentResolver.query(
             uri,
             projection.toTypedArray(),
             null,
@@ -105,7 +111,7 @@ class MediaRepository(private val context: Context) {
 
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        context.contentResolver.query(
+        appContext.contentResolver.query(
             uri,
             projection,
             null,
@@ -141,28 +147,44 @@ class MediaRepository(private val context: Context) {
         return albumMap
     }
 
-    fun loadAlbums(): List<Album> {
-        val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-
-        val merged = imageAlbums.toMutableMap()
-        for ((bucketId, videoAlbum) in videoAlbums) {
-            val existing = merged[bucketId]
-            if (existing == null) {
-                merged[bucketId] = videoAlbum
-            } else {
-                merged[bucketId] = existing.copy(
-                    itemCount = existing.itemCount + videoAlbum.itemCount
-                )
-            }
+    suspend fun loadAlbums(): List<Album> {
+        val cached = cachedMedia
+        if (cached != null) {
+            return cached.groupBy { it.bucketId }
+                .map { (bucketId, items) ->
+                    val first = items.first()
+                    Album(
+                        bucketId = bucketId,
+                        displayName = first.bucketDisplayName,
+                        coverUri = first.thumbUri,
+                        itemCount = items.size
+                    )
+                }
         }
 
-        return merged.values.toList()
+        return withContext(Dispatchers.IO) {
+            val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+
+            val merged = imageAlbums.toMutableMap()
+            for ((bucketId, videoAlbum) in videoAlbums) {
+                val existing = merged[bucketId]
+                if (existing == null) {
+                    merged[bucketId] = videoAlbum
+                } else {
+                    merged[bucketId] = existing.copy(
+                        itemCount = existing.itemCount + videoAlbum.itemCount
+                    )
+                }
+            }
+
+            merged.values.toList()
+        }
     }
 
     fun deleteMedia(uri: Uri): Boolean {
         return try {
-            val deleted = context.contentResolver.delete(uri, null, null) > 0
+            val deleted = appContext.contentResolver.delete(uri, null, null) > 0
             if (deleted) cachedMedia = null
             deleted
         } catch (_: SecurityException) {

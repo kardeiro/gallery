@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,21 +38,24 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import io.github.kardeiro.gallery.R
 import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.Album
+import io.github.kardeiro.gallery.ui.theme.GallerySpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumScreen(
+    repository: MediaRepository,
     onNavigateToAlbum: (String, String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val repository = remember { MediaRepository(context) }
     var albums by remember { mutableStateOf<List<Album>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -78,23 +82,38 @@ fun AlbumScreen(
             )
         }
     ) { innerPadding ->
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(160.dp),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            items(
-                items = albums,
-                key = { it.bucketId }
-            ) { album ->
-                AlbumCard(
-                    album = album,
-                    onClick = { onNavigateToAlbum(album.bucketId, album.displayName) }
+        if (albums.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ExpressiveStateCard(
+                    icon = Icons.Outlined.PhotoLibrary,
+                    title = stringResource(R.string.no_albums),
+                    message = stringResource(R.string.no_albums_description),
                 )
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(160.dp),
+                contentPadding = PaddingValues(GallerySpacing.Large),
+                horizontalArrangement = Arrangement.spacedBy(GallerySpacing.Large),
+                verticalArrangement = Arrangement.spacedBy(GallerySpacing.Large),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                items(
+                    items = albums,
+                    key = { it.bucketId }
+                ) { album ->
+                    AlbumCard(
+                        album = album,
+                        onClick = { onNavigateToAlbum(album.bucketId, album.displayName) }
+                    )
+                }
             }
         }
     }
@@ -106,27 +125,34 @@ private fun AlbumCard(
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
+    val imageRequest = remember(album.coverUri) {
+        ImageRequest.Builder(context)
+            .data(album.coverUri)
+            .size(360)
+            .crossfade(true)
+            .build()
+    }
+    val albumDescription = stringResource(R.string.open_album, album.displayName, album.itemCount)
 
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = MaterialTheme.shapes.large,
+        modifier = Modifier.semantics { contentDescription = albumDescription },
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .clip(MaterialTheme.shapes.medium)
+                    .clip(MaterialTheme.shapes.large)
             ) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(album.coverUri)
-                        .size(360)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = album.displayName,
+                    model = imageRequest,
+                    contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -134,14 +160,23 @@ private fun AlbumCard(
             Text(
                 text = album.displayName,
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(
+                    start = GallerySpacing.Medium,
+                    end = GallerySpacing.Medium,
+                    top = GallerySpacing.Medium,
+                    bottom = GallerySpacing.Tiny,
+                )
             )
             Text(
                 text = stringResource(R.string.items_count, album.itemCount),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(
-                    start = 12.dp, end = 12.dp, bottom = 12.dp
+                    start = GallerySpacing.Medium,
+                    end = GallerySpacing.Medium,
+                    bottom = GallerySpacing.Medium,
                 )
             )
         }

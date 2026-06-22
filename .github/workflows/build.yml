@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - autonomous-improve
   pull_request:
     branches:
       - main
