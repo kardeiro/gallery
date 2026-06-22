@@ -1,14 +1,16 @@
 package io.github.kardeiro.gallery.ui.screen
 
 import android.content.Intent
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import java.util.Locale
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -16,12 +18,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -37,12 +42,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.FileProvider
 import androidx.media3.common.MediaItem as Media3Item
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -53,7 +58,6 @@ import io.github.kardeiro.gallery.R
 import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
 import io.github.kardeiro.gallery.data.model.MediaType
-import kotlinx.coroutines.coroutineScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +70,10 @@ fun ViewerScreen(
     val repository = remember { MediaRepository(context) }
     var mediaItems by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     var showBars by remember { mutableStateOf(true) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    var infoItem by remember { mutableStateOf<MediaItem?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteTargetItem by remember { mutableStateOf<MediaItem?>(null) }
 
     LaunchedEffect(Unit) {
         val all = repository.loadMedia()
@@ -103,15 +111,15 @@ fun ViewerScreen(
                         }) {
                             Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
                         }
-                        IconButton(onClick = { /* Info dialog */ }) {
+                        IconButton(onClick = {
+                            infoItem = mediaItems.getOrNull(pagerState.currentPage)
+                            showInfoDialog = true
+                        }) {
                             Icon(Icons.Filled.Info, contentDescription = stringResource(R.string.info))
                         }
                         IconButton(onClick = {
-                            val item = mediaItems.getOrNull(pagerState.currentPage)
-                            item?.let {
-                                repository.deleteMedia(it.uri)
-                                mediaItems = repository.loadMedia()
-                            }
+                            deleteTargetItem = mediaItems.getOrNull(pagerState.currentPage)
+                            showDeleteDialog = true
                         }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                         }
@@ -124,6 +132,23 @@ fun ViewerScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+        if (showInfoDialog && infoItem != null) {
+            MediaInfoDialog(
+                item = infoItem!!,
+                onDismiss = { showInfoDialog = false }
+            )
+        }
+        if (showDeleteDialog && deleteTargetItem != null) {
+            DeleteConfirmDialog(
+                onConfirm = {
+                    repository.deleteMedia(deleteTargetItem!!.uri)
+                    mediaItems = repository.loadMedia()
+                    showDeleteDialog = false
+                    deleteTargetItem = null
+                },
+                onDismiss = { showDeleteDialog = false; deleteTargetItem = null }
+            )
+        }
         if (mediaItems.isEmpty()) return@Scaffold
 
         HorizontalPager(
@@ -134,16 +159,26 @@ fun ViewerScreen(
         ) { page ->
             val item = mediaItems[page]
             if (item.mediaType == MediaType.VIDEO) {
-                VideoPlayer(item = item, isVisible = page == pagerState.currentPage)
+                VideoPlayer(
+                    item = item,
+                    isVisible = page == pagerState.currentPage,
+                    onToggleBars = { showBars = !showBars }
+                )
             } else {
-                ZoomableImage(item = item)
+                ZoomableImage(
+                    item = item,
+                    onTap = { showBars = !showBars }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ZoomableImage(item: MediaItem) {
+private fun ZoomableImage(
+    item: MediaItem,
+    onTap: () -> Unit,
+) {
     val context = LocalContext.current
     var scale by remember { mutableFloatStateOf(1f) }
     var offsetX by remember { mutableFloatStateOf(0f) }
@@ -153,6 +188,9 @@ private fun ZoomableImage(item: MediaItem) {
         modifier = Modifier
             .fillMaxSize()
             .clipToBounds()
+            .pointerInput(Unit) {
+                detectTapGestures { onTap() }
+            }
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, zoom, _ ->
                     scale = (scale * zoom).coerceIn(1f, 5f)
@@ -191,6 +229,7 @@ private fun ZoomableImage(item: MediaItem) {
 private fun VideoPlayer(
     item: MediaItem,
     isVisible: Boolean,
+    onToggleBars: () -> Unit,
 ) {
     val context = LocalContext.current
     val player = remember {
@@ -214,15 +253,110 @@ private fun VideoPlayer(
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                this.player = player
-                useController = true
-                setShowNextButton(false)
-                setShowPreviousButton(false)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures { onToggleBars() }
+            }
+    ) {
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    this.player = player
+                    useController = true
+                    setShowNextButton(false)
+                    setShowPreviousButton(false)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+private fun formatDuration(durationMs: Long?): String {
+    if (durationMs == null || durationMs <= 0) return ""
+    val totalSeconds = (durationMs / 1000).toInt()
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(Locale.US, "%d:%02d", minutes, seconds)
+}
+
+@Composable
+private fun MediaInfoDialog(
+    item: MediaItem,
+    onDismiss: () -> Unit,
+) {
+    val locationText = if (item.latitude != null && item.longitude != null) {
+        String.format(Locale.US, "%.6f, %.6f", item.latitude, item.longitude)
+    } else {
+        null
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.info)) },
+        text = {
+            Column {
+                InfoRow(label = "Type", value = item.mediaType.name)
+                InfoRow(label = "Date", value = item.formattedDate)
+                InfoRow(label = "Size", value = item.formattedSize)
+                InfoRow(label = "Dimensions", value = "${item.width} x ${item.height} px")
+                if (item.duration != null) {
+                    InfoRow(label = "Duration", value = formatDuration(item.duration))
+                }
+                if (locationText != null) {
+                    HorizontalDivider()
+                    InfoRow(label = "Location", value = locationText)
+                }
             }
         },
-        modifier = Modifier.fillMaxSize()
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        }
     )
+}
+
+@Composable
+private fun DeleteConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.delete)) },
+        text = { Text(stringResource(R.string.delete_confirm)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }

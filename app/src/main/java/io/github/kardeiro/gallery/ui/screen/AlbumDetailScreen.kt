@@ -50,6 +50,9 @@ fun AlbumDetailScreen(
     val context = LocalContext.current
     val repository = remember { MediaRepository(context) }
     var mediaItems by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
+    val idIndexMap = remember(mediaItems) {
+        mediaItems.withIndex().associate { (index, item) -> item.id to index }
+    }
 
     LaunchedEffect(bucketId) {
         mediaItems = repository.loadMedia().filter { it.bucketId == bucketId }
@@ -92,13 +95,12 @@ fun AlbumDetailScreen(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .clip(MaterialTheme.shapes.small)
-                        .clickable { onNavigateToViewer(mediaItems.indexOf(item)) }
+                        .clickable { onNavigateToViewer(idIndexMap[item.id] ?: 0) }
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
                             .data(item.uri)
                             .size(360)
-                            .crossfade(true)
                             .build(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,

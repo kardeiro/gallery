@@ -28,10 +28,11 @@ data class MediaItem(
         get() = if (mimeType.startsWith("video")) MediaType.VIDEO else MediaType.IMAGE
 
     val formattedDate: String
-        get() {
-            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            return sdf.format(Date(dateTaken))
-        }
+        get() = dateFormat.format(Date(dateTaken))
+
+    companion object {
+        private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    }
 
     val formattedSize: String
         get() {

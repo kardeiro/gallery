@@ -3,9 +3,7 @@ package io.github.kardeiro.gallery.data
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
-import androidx.core.database.getStringOrNull
 import io.github.kardeiro.gallery.data.model.Album
 import io.github.kardeiro.gallery.data.model.MediaItem
 
@@ -142,6 +140,20 @@ class MediaRepository(private val context: Context) {
     }
 
     fun loadAlbums(): List<Album> {
+        val cached = cachedMedia
+        if (cached != null) {
+            return cached.groupBy { it.bucketId }
+                .map { (bucketId, items) ->
+                    val first = items.first()
+                    Album(
+                        bucketId = bucketId,
+                        displayName = first.bucketDisplayName,
+                        coverUri = first.thumbUri,
+                        itemCount = items.size
+                    )
+                }
+        }
+
         val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
 
