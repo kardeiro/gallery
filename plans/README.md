@@ -10,6 +10,7 @@ honor its STOP conditions, and update your row when done.
 |------|-------|----------|--------|------------|--------|
 | 001  | Fix dead AlbumView route — register missing composable | P1 | XS | — | DONE ✅ |
 | 002  | Replace hardcoded strings with stringResource references | P2 | S | — | DONE ✅ |
+| 003  | Add video support — query videos, badge, playback in viewer | P2 | M | — | DONE ✅ |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 
