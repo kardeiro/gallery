@@ -59,6 +59,7 @@ import kotlinx.coroutines.coroutineScope
 @Composable
 fun ViewerScreen(
     initialIndex: Int,
+    bucketId: String? = null,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -67,7 +68,8 @@ fun ViewerScreen(
     var showBars by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        mediaItems = repository.loadMedia()
+        val all = repository.loadMedia()
+        mediaItems = if (bucketId != null) all.filter { it.bucketId == bucketId } else all
     }
 
     val pagerState = rememberPagerState(

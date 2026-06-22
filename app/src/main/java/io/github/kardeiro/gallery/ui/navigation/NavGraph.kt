@@ -14,10 +14,11 @@ import io.github.kardeiro.gallery.ui.screen.ViewerScreen
 object Routes {
     const val GALLERY = "gallery"
     const val ALBUMS = "albums"
-    const val VIEWER = "viewer/{index}"
+    const val VIEWER = "viewer/{index}?bucketId={bucketId}"
     const val ALBUM_VIEW = "album/{bucketId}/{bucketName}"
 
-    fun viewerRoute(index: Int) = "viewer/$index"
+    fun viewerRoute(index: Int, bucketId: String? = null) =
+        if (bucketId != null) "viewer/$index?bucketId=$bucketId" else "viewer/$index"
     fun albumRoute(bucketId: String, bucketName: String) = "album/$bucketId/$bucketName"
 }
 
@@ -63,18 +64,23 @@ fun NavGraph() {
                 bucketDisplayName = bucketName,
                 onBack = { navController.popBackStack() },
                 onNavigateToViewer = { index ->
-                    navController.navigate(Routes.viewerRoute(index))
+                    navController.navigate(Routes.viewerRoute(index, bucketId))
                 }
             )
         }
 
         composable(
             route = Routes.VIEWER,
-            arguments = listOf(navArgument("index") { type = NavType.IntType })
+            arguments = listOf(
+                navArgument("index") { type = NavType.IntType },
+                navArgument("bucketId") { type = NavType.StringType; defaultValue = null },
+            )
         ) { backStackEntry ->
             val index = backStackEntry.arguments?.getInt("index") ?: 0
+            val bucketId = backStackEntry.arguments?.getString("bucketId")
             ViewerScreen(
                 initialIndex = index,
+                bucketId = bucketId,
                 onBack = { navController.popBackStack() }
             )
         }
