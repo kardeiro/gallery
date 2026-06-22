@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import io.github.kardeiro.gallery.R
 import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
 
