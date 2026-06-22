@@ -71,6 +71,9 @@ fun GalleryScreen(
     val context = LocalContext.current
     val repository = remember { MediaRepository(context) }
     var mediaItems by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
+    val idIndexMap = remember(mediaItems) {
+        mediaItems.withIndex().associate { (index, item) -> item.id to index }
+    }
     var isLoading by remember { mutableStateOf(true) }
     var hasPermission by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -198,8 +201,7 @@ fun GalleryScreen(
                             MediaThumbnail(
                                 item = item,
                                 onClick = {
-                                    val index = mediaItems.indexOf(item)
-                                    onNavigateToViewer(index)
+                                    onNavigateToViewer(idIndexMap[item.id] ?: 0)
                                 }
                             )
                         }
