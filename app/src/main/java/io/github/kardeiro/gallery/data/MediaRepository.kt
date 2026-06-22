@@ -3,9 +3,7 @@ package io.github.kardeiro.gallery.data
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
-import androidx.core.database.getStringOrNull
 import io.github.kardeiro.gallery.data.model.Album
 import io.github.kardeiro.gallery.data.model.MediaItem
 
