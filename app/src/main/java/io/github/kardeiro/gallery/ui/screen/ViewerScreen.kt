@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -75,7 +76,7 @@ fun ViewerScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                         }
                     },
                     actions = {
@@ -90,10 +91,10 @@ fun ViewerScreen(
                                 context.startActivity(Intent.createChooser(shareIntent, "Share"))
                             }
                         }) {
-                            Icon(Icons.Filled.Share, contentDescription = "Share")
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
                         }
                         IconButton(onClick = { /* Info dialog */ }) {
-                            Icon(Icons.Filled.Info, contentDescription = "Info")
+                            Icon(Icons.Filled.Info, contentDescription = stringResource(R.string.info))
                         }
                         IconButton(onClick = {
                             val item = mediaItems.getOrNull(pagerState.currentPage)
@@ -102,7 +103,7 @@ fun ViewerScreen(
                                 mediaItems = repository.loadMedia()
                             }
                         }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete")
+                            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
