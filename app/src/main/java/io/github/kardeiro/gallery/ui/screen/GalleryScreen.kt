@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -117,7 +118,7 @@ fun GalleryScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("Gallery") },
+                title = { Text(stringResource(R.string.gallery)) },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -135,10 +136,10 @@ fun GalleryScreen(
                     icon = {
                         Icon(
                             Icons.Filled.PhotoLibrary,
-                            contentDescription = "Photos"
+                            contentDescription = stringResource(R.string.photos)
                         )
                     },
-                    label = { Text("Photos") }
+                    label = { Text(stringResource(R.string.photos)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
@@ -149,10 +150,10 @@ fun GalleryScreen(
                     icon = {
                         Icon(
                             Icons.Outlined.PhotoLibrary,
-                            contentDescription = "Albums"
+                            contentDescription = stringResource(R.string.albums)
                         )
                     },
-                    label = { Text("Albums") }
+                    label = { Text(stringResource(R.string.albums)) }
                 )
             }
         }
@@ -258,19 +259,19 @@ private fun PermissionPlaceholder(
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "Permission Required",
+                    text = stringResource(R.string.permission_required),
                     style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Allow access to photos and videos to view your gallery.",
+                    text = stringResource(R.string.permission_message),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(24.dp))
                 androidx.compose.material3.Button(onClick = onRequestPermission) {
-                    Text("Grant Permission")
+                    Text(stringResource(R.string.grant_permission))
                 }
             }
         }
@@ -294,12 +295,12 @@ private fun EmptyGalleryPlaceholder() {
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "No media found",
+                text = stringResource(R.string.no_media),
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Your gallery is empty.",
+                text = stringResource(R.string.no_media_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

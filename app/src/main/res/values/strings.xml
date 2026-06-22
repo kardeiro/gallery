@@ -7,8 +7,11 @@
     <string name="permission_message">Allow access to photos and videos to view your gallery.</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="no_media">No media found</string>
-    <string name="no_media_description">Your gallery is empty. Take some photos or videos to get started.</string>
+    <string name="no_media_description">Your gallery is empty.</string>
     <string name="delete">Delete</string>
     <string name="share">Share</string>
     <string name="info">Info</string>
+    <string name="photos">Photos</string>
+    <string name="back">Back</string>
+    <string name="items_count">%d items</string>
 </resources>
