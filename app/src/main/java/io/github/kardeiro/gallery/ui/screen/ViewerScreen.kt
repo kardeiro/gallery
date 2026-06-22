@@ -181,6 +181,13 @@ private fun ZoomableImage(
     var scale by remember { mutableFloatStateOf(1f) }
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+    val imageRequest = remember(item.uri) {
+        ImageRequest.Builder(context)
+            .data(item.uri)
+            .size(2048)
+            .crossfade(true)
+            .build()
+    }
 
     Box(
         modifier = Modifier
@@ -204,11 +211,7 @@ private fun ZoomableImage(
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(item.uri)
-                .size(2048)
-                .crossfade(true)
-                .build(),
+            model = imageRequest,
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier

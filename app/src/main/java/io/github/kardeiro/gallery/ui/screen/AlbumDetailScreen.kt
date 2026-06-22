@@ -91,6 +91,13 @@ fun AlbumDetailScreen(
                 items = mediaItems,
                 key = { it.id }
             ) { item ->
+                val imageRequest = remember(item.uri) {
+                    ImageRequest.Builder(context)
+                        .data(item.uri)
+                        .size(360)
+                        .build()
+                }
+
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
@@ -98,10 +105,7 @@ fun AlbumDetailScreen(
                         .clickable { onNavigateToViewer(idIndexMap[item.id] ?: 0) }
                 ) {
                     AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(item.uri)
-                            .size(360)
-                            .build(),
+                        model = imageRequest,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()

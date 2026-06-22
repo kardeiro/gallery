@@ -105,6 +105,13 @@ private fun AlbumCard(
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
+    val imageRequest = remember(album.coverUri) {
+        ImageRequest.Builder(context)
+            .data(album.coverUri)
+            .size(360)
+            .crossfade(true)
+            .build()
+    }
 
     Card(
         onClick = onClick,
@@ -120,11 +127,7 @@ private fun AlbumCard(
                     .clip(MaterialTheme.shapes.medium)
             ) {
                 AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(album.coverUri)
-                        .size(360)
-                        .crossfade(true)
-                        .build(),
+                    model = imageRequest,
                     contentDescription = album.displayName,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

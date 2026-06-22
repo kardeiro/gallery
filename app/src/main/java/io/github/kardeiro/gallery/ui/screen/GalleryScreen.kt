@@ -214,6 +214,12 @@ private fun MediaThumbnail(
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
+    val imageRequest = remember(item.uri) {
+        ImageRequest.Builder(context)
+            .data(item.uri)
+            .size(360)
+            .build()
+    }
 
     Box(
         modifier = Modifier
@@ -222,10 +228,7 @@ private fun MediaThumbnail(
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(item.uri)
-                .size(360)
-                .build(),
+            model = imageRequest,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
