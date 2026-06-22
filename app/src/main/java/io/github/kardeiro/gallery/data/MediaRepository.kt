@@ -142,6 +142,20 @@ class MediaRepository(private val context: Context) {
     }
 
     fun loadAlbums(): List<Album> {
+        val cached = cachedMedia
+        if (cached != null) {
+            return cached.groupBy { it.bucketId }
+                .map { (bucketId, items) ->
+                    val first = items.first()
+                    Album(
+                        bucketId = bucketId,
+                        displayName = first.bucketDisplayName,
+                        coverUri = first.thumbUri,
+                        itemCount = items.size
+                    )
+                }
+        }
+
         val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
 
