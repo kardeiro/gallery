@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.kardeiro.gallery.ui.screen.AlbumScreen
 import io.github.kardeiro.gallery.ui.screen.GalleryScreen
+import io.github.kardeiro.gallery.ui.screen.AlbumDetailScreen
 import io.github.kardeiro.gallery.ui.screen.ViewerScreen
 
 object Routes {
@@ -45,6 +46,25 @@ fun NavGraph() {
                     navController.navigate(Routes.albumRoute(bucketId, bucketName))
                 },
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Routes.ALBUM_VIEW,
+            arguments = listOf(
+                navArgument("bucketId") { type = NavType.StringType },
+                navArgument("bucketName") { type = NavType.StringType },
+            )
+        ) { backStackEntry ->
+            val bucketId = backStackEntry.arguments?.getString("bucketId") ?: return@composable
+            val bucketName = backStackEntry.arguments?.getString("bucketName") ?: return@composable
+            AlbumDetailScreen(
+                bucketId = bucketId,
+                bucketDisplayName = bucketName,
+                onBack = { navController.popBackStack() },
+                onNavigateToViewer = { index ->
+                    navController.navigate(Routes.viewerRoute(index))
+                }
             )
         }
 
