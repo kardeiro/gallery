@@ -170,6 +170,7 @@ private fun ZoomableImage(item: MediaItem) {
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(item.uri)
+                .size(2048)
                 .crossfade(true)
                 .build(),
             contentDescription = null,

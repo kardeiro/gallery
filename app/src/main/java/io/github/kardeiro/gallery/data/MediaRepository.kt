@@ -11,10 +11,19 @@ import io.github.kardeiro.gallery.data.model.MediaItem
 
 class MediaRepository(private val context: Context) {
 
+    private var cachedMedia: List<MediaItem>? = null
+
     fun loadMedia(): List<MediaItem> {
+        if (cachedMedia != null) return cachedMedia!!
+
         val images = queryMedia(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null)
         val videos = queryMedia(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DURATION)
         return (images + videos).sortedByDescending { it.dateTaken }
+            .also { cachedMedia = it }
+    }
+
+    fun invalidateCache() {
+        cachedMedia = null
     }
 
     private fun queryMedia(uri: Uri, durationColName: String?): List<MediaItem> {
@@ -153,7 +162,9 @@ class MediaRepository(private val context: Context) {
 
     fun deleteMedia(uri: Uri): Boolean {
         return try {
-            context.contentResolver.delete(uri, null, null) > 0
+            val deleted = context.contentResolver.delete(uri, null, null) > 0
+            if (deleted) cachedMedia = null
+            deleted
         } catch (_: SecurityException) {
             false
         }
