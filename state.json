@@ -2,21 +2,37 @@
   "initialized": true,
   "branch": "autonomous-improve",
   "created_at": "2026-06-22T01:00:00Z",
-  "last_updated": "2026-06-22T01:00:00Z",
-  "loop_count": 0,
-  "current_task_index": 0,
+  "last_updated": "2026-06-22T01:01:00Z",
+  "loop_count": 1,
+  "current_task_index": 1,
   "tasks": [
     {
       "index": 0,
       "file": "plans/004-fix-album-viewer-index-bug.md",
       "title": "Fix wrong item shown when navigating from album to viewer",
       "priority": "P1",
-      "status": "pending"
+      "status": "done"
     }
   ],
-  "completed_tasks": [],
+  "completed_tasks": [
+    {
+      "task_name": "Fix wrong item shown when navigating from album to viewer",
+      "completed_at": "2026-06-22T01:01:00Z",
+      "loop_count": 1,
+      "note": "Fixed independently in commit 87b0aa4 — already implemented before plan execution"
+    }
+  ],
   "failed_attempts": {},
-  "checkpoints": [],
-  "last_skill_read": "2026-06-22T01:00:00Z",
+  "checkpoints": [
+    {
+      "at_loop": 1,
+      "timestamp": "2026-06-22T01:01:00Z",
+      "tasks_done": 1,
+      "tasks_remaining": 0,
+      "current_branch": "autonomous-improve",
+      "status": "RUNNING"
+    }
+  ],
+  "last_skill_read": "2026-06-22T01:01:00Z",
   "anchor": "AUTONOMOUS_LOOP_ACTIVE — re-read state.json if context feels lost"
 }
