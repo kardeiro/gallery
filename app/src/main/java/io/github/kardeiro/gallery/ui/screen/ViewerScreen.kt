@@ -72,6 +72,8 @@ fun ViewerScreen(
     var showBars by remember { mutableStateOf(true) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var infoItem by remember { mutableStateOf<MediaItem?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteTargetItem by remember { mutableStateOf<MediaItem?>(null) }
 
     LaunchedEffect(Unit) {
         val all = repository.loadMedia()
@@ -116,11 +118,8 @@ fun ViewerScreen(
                             Icon(Icons.Filled.Info, contentDescription = stringResource(R.string.info))
                         }
                         IconButton(onClick = {
-                            val item = mediaItems.getOrNull(pagerState.currentPage)
-                            item?.let {
-                                repository.deleteMedia(it.uri)
-                                mediaItems = repository.loadMedia()
-                            }
+                            deleteTargetItem = mediaItems.getOrNull(pagerState.currentPage)
+                            showDeleteDialog = true
                         }) {
                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                         }
@@ -137,6 +136,17 @@ fun ViewerScreen(
             MediaInfoDialog(
                 item = infoItem!!,
                 onDismiss = { showInfoDialog = false }
+            )
+        }
+        if (showDeleteDialog && deleteTargetItem != null) {
+            DeleteConfirmDialog(
+                onConfirm = {
+                    repository.deleteMedia(deleteTargetItem!!.uri)
+                    mediaItems = repository.loadMedia()
+                    showDeleteDialog = false
+                    deleteTargetItem = null
+                },
+                onDismiss = { showDeleteDialog = false; deleteTargetItem = null }
             )
         }
         if (mediaItems.isEmpty()) return@Scaffold
@@ -304,6 +314,28 @@ private fun MediaInfoDialog(
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.close))
+            }
+        }
+    )
+}
+
+@Composable
+private fun DeleteConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.delete)) },
+        text = { Text(stringResource(R.string.delete_confirm)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
     )
