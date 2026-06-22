@@ -229,7 +229,6 @@ private fun MediaThumbnail(
             model = ImageRequest.Builder(context)
                 .data(item.uri)
                 .size(360)
-                .crossfade(true)
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.Crop,
