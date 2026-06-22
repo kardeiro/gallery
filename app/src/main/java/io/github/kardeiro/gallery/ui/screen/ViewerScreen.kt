@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
@@ -148,16 +149,26 @@ fun ViewerScreen(
         ) { page ->
             val item = mediaItems[page]
             if (item.mediaType == MediaType.VIDEO) {
-                VideoPlayer(item = item, isVisible = page == pagerState.currentPage)
+                VideoPlayer(
+                    item = item,
+                    isVisible = page == pagerState.currentPage,
+                    onToggleBars = { showBars = !showBars }
+                )
             } else {
-                ZoomableImage(item = item)
+                ZoomableImage(
+                    item = item,
+                    onTap = { showBars = !showBars }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ZoomableImage(item: MediaItem) {
+private fun ZoomableImage(
+    item: MediaItem,
+    onTap: () -> Unit,
+) {
     val context = LocalContext.current
     var scale by remember { mutableFloatStateOf(1f) }
     var offsetX by remember { mutableFloatStateOf(0f) }
@@ -167,6 +178,9 @@ private fun ZoomableImage(item: MediaItem) {
         modifier = Modifier
             .fillMaxSize()
             .clipToBounds()
+            .pointerInput(Unit) {
+                detectTapGestures { onTap() }
+            }
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, zoom, _ ->
                     scale = (scale * zoom).coerceIn(1f, 5f)
@@ -205,6 +219,7 @@ private fun ZoomableImage(item: MediaItem) {
 private fun VideoPlayer(
     item: MediaItem,
     isVisible: Boolean,
+    onToggleBars: () -> Unit,
 ) {
     val context = LocalContext.current
     val player = remember {
@@ -228,17 +243,25 @@ private fun VideoPlayer(
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                this.player = player
-                useController = true
-                setShowNextButton(false)
-                setShowPreviousButton(false)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures { onToggleBars() }
             }
-        },
-        modifier = Modifier.fillMaxSize()
-    )
+    ) {
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    this.player = player
+                    useController = true
+                    setShowNextButton(false)
+                    setShowPreviousButton(false)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
 
 private fun formatDuration(durationMs: Long?): String {
