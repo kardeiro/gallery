@@ -18,6 +18,7 @@ fully before starting, honor its STOP conditions, and update your row when done.
 | 008  | Remove crossfade from grid thumbnails | P3 | XS | — | DONE ✅ |
 | 009  | Move SimpleDateFormat to companion object | P3 | XS | — | DONE ✅ |
 | 010  | Build album list from cached media instead of DB scan | P2 | S | 006 | DONE ✅ |
+| 011  | Remove unused imports across source files | P3 | XS | — | DONE ✅ |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 
