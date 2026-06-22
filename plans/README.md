@@ -24,9 +24,9 @@ fully before starting, honor its STOP conditions, and update your row when done.
 | 014  | Delete confirmation dialog | P1 | XS | — | DONE ✅ |
 | 015  | Request READ_MEDIA_VIDEO permission on Android 13+ | P1 | XS | — | DONE ✅ |
 | 016  | Share one MediaRepository instance across screens | P1 | S | — | DONE ✅ |
-| 017  | Move MediaStore queries off the main thread | P1 | S | 016 | TODO |
+| 017  | Move MediaStore queries off the main thread | P1 | S | 016 | DONE ✅ |
 | 018  | Remember Coil ImageRequest objects in media composables | P2 | S | — | DONE ✅ |
-| 019  | Defer ExoPlayer creation to the visible video page | P2 | S | — | TODO |
+| 019  | Defer ExoPlayer creation to the visible video page | P2 | S | — | DONE ✅ |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 

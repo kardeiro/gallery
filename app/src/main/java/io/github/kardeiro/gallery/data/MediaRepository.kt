@@ -6,6 +6,8 @@ import android.net.Uri
 import android.provider.MediaStore
 import io.github.kardeiro.gallery.data.model.Album
 import io.github.kardeiro.gallery.data.model.MediaItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MediaRepository(context: Context) {
 
@@ -13,13 +15,17 @@ class MediaRepository(context: Context) {
 
     private var cachedMedia: List<MediaItem>? = null
 
-    fun loadMedia(): List<MediaItem> {
-        if (cachedMedia != null) return cachedMedia!!
+    suspend fun loadMedia(): List<MediaItem> {
+        cachedMedia?.let { return it }
 
-        val images = queryMedia(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null)
-        val videos = queryMedia(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DURATION)
-        return (images + videos).sortedByDescending { it.dateTaken }
-            .also { cachedMedia = it }
+        return withContext(Dispatchers.IO) {
+            cachedMedia?.let { return@withContext it }
+
+            val images = queryMedia(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null)
+            val videos = queryMedia(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.DURATION)
+            (images + videos).sortedByDescending { it.dateTaken }
+                .also { cachedMedia = it }
+        }
     }
 
     fun invalidateCache() {
@@ -141,7 +147,7 @@ class MediaRepository(context: Context) {
         return albumMap
     }
 
-    fun loadAlbums(): List<Album> {
+    suspend fun loadAlbums(): List<Album> {
         val cached = cachedMedia
         if (cached != null) {
             return cached.groupBy { it.bucketId }
@@ -156,22 +162,24 @@ class MediaRepository(context: Context) {
                 }
         }
 
-        val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+        return withContext(Dispatchers.IO) {
+            val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
 
-        val merged = imageAlbums.toMutableMap()
-        for ((bucketId, videoAlbum) in videoAlbums) {
-            val existing = merged[bucketId]
-            if (existing == null) {
-                merged[bucketId] = videoAlbum
-            } else {
-                merged[bucketId] = existing.copy(
-                    itemCount = existing.itemCount + videoAlbum.itemCount
-                )
+            val merged = imageAlbums.toMutableMap()
+            for ((bucketId, videoAlbum) in videoAlbums) {
+                val existing = merged[bucketId]
+                if (existing == null) {
+                    merged[bucketId] = videoAlbum
+                } else {
+                    merged[bucketId] = existing.copy(
+                        itemCount = existing.itemCount + videoAlbum.itemCount
+                    )
+                }
             }
-        }
 
-        return merged.values.toList()
+            merged.values.toList()
+        }
     }
 
     fun deleteMedia(uri: Uri): Boolean {

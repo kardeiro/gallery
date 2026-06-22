@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,7 @@ import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
 import io.github.kardeiro.gallery.data.model.MediaType
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +75,7 @@ fun GalleryScreen(
     var hasPermission by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableIntStateOf(0) }
     val gridState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
 
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
@@ -86,9 +89,11 @@ fun GalleryScreen(
         val allGranted = grantedMap.values.all { it }
         hasPermission = allGranted
         if (allGranted) {
-            isLoading = true
-            mediaItems = repository.loadMedia()
-            isLoading = false
+            scope.launch {
+                isLoading = true
+                mediaItems = repository.loadMedia()
+                isLoading = false
+            }
         }
     }
 

@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
@@ -56,6 +57,7 @@ import io.github.kardeiro.gallery.R
 import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
 import io.github.kardeiro.gallery.data.model.MediaType
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,6 +74,7 @@ fun ViewerScreen(
     var infoItem by remember { mutableStateOf<MediaItem?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteTargetItem by remember { mutableStateOf<MediaItem?>(null) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         val all = repository.loadMedia()
@@ -139,10 +142,13 @@ fun ViewerScreen(
         if (showDeleteDialog && deleteTargetItem != null) {
             DeleteConfirmDialog(
                 onConfirm = {
-                    repository.deleteMedia(deleteTargetItem!!.uri)
-                    mediaItems = repository.loadMedia()
+                    val targetItem = deleteTargetItem ?: return@DeleteConfirmDialog
+                    repository.deleteMedia(targetItem.uri)
                     showDeleteDialog = false
                     deleteTargetItem = null
+                    scope.launch {
+                        mediaItems = repository.loadMedia()
+                    }
                 },
                 onDismiss = { showDeleteDialog = false; deleteTargetItem = null }
             )
@@ -157,11 +163,14 @@ fun ViewerScreen(
         ) { page ->
             val item = mediaItems[page]
             if (item.mediaType == MediaType.VIDEO) {
-                VideoPlayer(
-                    item = item,
-                    isVisible = page == pagerState.currentPage,
-                    onToggleBars = { showBars = !showBars }
-                )
+                if (page == pagerState.currentPage) {
+                    VideoPlayer(
+                        item = item,
+                        onToggleBars = { showBars = !showBars }
+                    )
+                } else {
+                    Box(modifier = Modifier.fillMaxSize())
+                }
             } else {
                 ZoomableImage(
                     item = item,
@@ -229,26 +238,18 @@ private fun ZoomableImage(
 @Composable
 private fun VideoPlayer(
     item: MediaItem,
-    isVisible: Boolean,
     onToggleBars: () -> Unit,
 ) {
     val context = LocalContext.current
-    val player = remember {
+    val player = remember(item.uri) {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(Media3Item.fromUri(item.uri))
             prepare()
-            playWhenReady = isVisible
+            playWhenReady = true
         }
     }
 
-    DisposableEffect(isVisible) {
-        player.playWhenReady = isVisible
-        onDispose {
-            player.playWhenReady = false
-        }
-    }
-
-    DisposableEffect(Unit) {
+    DisposableEffect(player) {
         onDispose {
             player.release()
         }
