@@ -73,7 +73,7 @@ fun NavGraph() {
             route = Routes.VIEWER,
             arguments = listOf(
                 navArgument("index") { type = NavType.IntType },
-                navArgument("bucketId") { type = NavType.StringType; defaultValue = null },
+                navArgument("bucketId") { type = NavType.StringNullableType; defaultValue = null },
             )
         ) { backStackEntry ->
             val index = backStackEntry.arguments?.getInt("index") ?: 0
