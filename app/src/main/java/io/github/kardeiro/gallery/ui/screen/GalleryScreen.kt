@@ -79,17 +79,18 @@ fun GalleryScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val gridState = rememberLazyGridState()
 
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Manifest.permission.READ_MEDIA_IMAGES
+    val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
     } else {
-        Manifest.permission.READ_EXTERNAL_STORAGE
+        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-        if (granted) {
+    val multiplePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { grantedMap ->
+        val allGranted = grantedMap.values.all { it }
+        hasPermission = allGranted
+        if (allGranted) {
             isLoading = true
             mediaItems = repository.loadMedia()
             isLoading = false
@@ -97,17 +98,18 @@ fun GalleryScreen(
     }
 
     LaunchedEffect(Unit) {
-        hasPermission = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                androidx.core.content.ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.READ_MEDIA_IMAGES
-                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            }
-            else -> {
-                androidx.core.content.ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            }
+        hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val imagesGranted = androidx.core.content.ContextCompat.checkSelfPermission(
+                context, Manifest.permission.READ_MEDIA_IMAGES
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            val videoGranted = androidx.core.content.ContextCompat.checkSelfPermission(
+                context, Manifest.permission.READ_MEDIA_VIDEO
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            imagesGranted && videoGranted
+        } else {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         }
         if (hasPermission) {
             mediaItems = repository.loadMedia()
@@ -179,7 +181,7 @@ fun GalleryScreen(
                 }
                 !hasPermission -> {
                     PermissionPlaceholder(
-                        onRequestPermission = { permissionLauncher.launch(permission) }
+                        onRequestPermission = { multiplePermissionLauncher.launch(permissions) }
                     )
                 }
                 mediaItems.isEmpty() -> {
