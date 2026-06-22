@@ -14,4 +14,5 @@
     <string name="photos">Photos</string>
     <string name="back">Back</string>
     <string name="items_count">%d items</string>
+    <string name="close">Close</string>
 </resources>

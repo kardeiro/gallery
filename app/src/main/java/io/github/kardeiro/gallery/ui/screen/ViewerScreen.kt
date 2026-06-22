@@ -2,9 +2,14 @@ package io.github.kardeiro.gallery.ui.screen
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import java.util.Locale
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -13,12 +18,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -61,6 +69,8 @@ fun ViewerScreen(
     val repository = remember { MediaRepository(context) }
     var mediaItems by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
     var showBars by remember { mutableStateOf(true) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+    var infoItem by remember { mutableStateOf<MediaItem?>(null) }
 
     LaunchedEffect(Unit) {
         val all = repository.loadMedia()
@@ -98,7 +108,10 @@ fun ViewerScreen(
                         }) {
                             Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
                         }
-                        IconButton(onClick = { /* Info dialog */ }) {
+                        IconButton(onClick = {
+                            infoItem = mediaItems.getOrNull(pagerState.currentPage)
+                            showInfoDialog = true
+                        }) {
                             Icon(Icons.Filled.Info, contentDescription = stringResource(R.string.info))
                         }
                         IconButton(onClick = {
@@ -119,6 +132,12 @@ fun ViewerScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+        if (showInfoDialog && infoItem != null) {
+            MediaInfoDialog(
+                item = infoItem!!,
+                onDismiss = { showInfoDialog = false }
+            )
+        }
         if (mediaItems.isEmpty()) return@Scaffold
 
         HorizontalPager(
@@ -220,4 +239,69 @@ private fun VideoPlayer(
         },
         modifier = Modifier.fillMaxSize()
     )
+}
+
+private fun formatDuration(durationMs: Long?): String {
+    if (durationMs == null || durationMs <= 0) return ""
+    val totalSeconds = (durationMs / 1000).toInt()
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(Locale.US, "%d:%02d", minutes, seconds)
+}
+
+@Composable
+private fun MediaInfoDialog(
+    item: MediaItem,
+    onDismiss: () -> Unit,
+) {
+    val locationText = if (item.latitude != null && item.longitude != null) {
+        String.format(Locale.US, "%.6f, %.6f", item.latitude, item.longitude)
+    } else {
+        null
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.info)) },
+        text = {
+            Column {
+                InfoRow(label = "Type", value = item.mediaType.name)
+                InfoRow(label = "Date", value = item.formattedDate)
+                InfoRow(label = "Size", value = item.formattedSize)
+                InfoRow(label = "Dimensions", value = "${item.width} x ${item.height} px")
+                if (item.duration != null) {
+                    InfoRow(label = "Duration", value = formatDuration(item.duration))
+                }
+                if (locationText != null) {
+                    HorizontalDivider()
+                    InfoRow(label = "Location", value = locationText)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        }
+    )
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }
