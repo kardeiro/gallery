@@ -1,5 +1,6 @@
 package io.github.kardeiro.gallery.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -88,6 +89,7 @@ fun AlbumDetailScreen(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .clip(MaterialTheme.shapes.small)
+                        .clickable { onNavigateToViewer(mediaItems.indexOf(item)) }
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
