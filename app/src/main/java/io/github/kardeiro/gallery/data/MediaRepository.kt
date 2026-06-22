@@ -20,7 +20,7 @@ class MediaRepository(private val context: Context) {
     private fun queryMedia(uri: Uri, durationColName: String?): List<MediaItem> {
         val items = mutableListOf<MediaItem>()
 
-        val projection = arrayOf(
+        val projection = mutableListOf(
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.MIME_TYPE,
@@ -33,12 +33,13 @@ class MediaRepository(private val context: Context) {
             MediaStore.Images.Media.LATITUDE,
             MediaStore.Images.Media.LONGITUDE,
         )
+        if (durationColName != null) projection.add(durationColName)
 
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
         context.contentResolver.query(
             uri,
-            projection,
+            projection.toTypedArray(),
             null,
             null,
             sortOrder
