@@ -85,7 +85,7 @@ class MediaRepository(private val context: Context) {
         return items
     }
 
-    fun loadAlbums(): List<Album> {
+    private fun queryAlbums(uri: Uri): Map<String, Album> {
         val albumMap = mutableMapOf<String, Album>()
 
         val projection = arrayOf(
@@ -97,7 +97,7 @@ class MediaRepository(private val context: Context) {
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
         context.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            uri,
             projection,
             null,
             null,
@@ -111,9 +111,7 @@ class MediaRepository(private val context: Context) {
                 val bucketId = cursor.getString(bucketIdCol)
                 val displayName = cursor.getString(bucketNameCol)
                 val coverId = cursor.getLong(idCol)
-                val coverUri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, coverId
-                )
+                val coverUri = ContentUris.withAppendedId(uri, coverId)
 
                 val existing = albumMap[bucketId]
                 if (existing == null) {
@@ -131,7 +129,26 @@ class MediaRepository(private val context: Context) {
             }
         }
 
-        return albumMap.values.toList()
+        return albumMap
+    }
+
+    fun loadAlbums(): List<Album> {
+        val imageAlbums = queryAlbums(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        val videoAlbums = queryAlbums(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+
+        val merged = imageAlbums.toMutableMap()
+        for ((bucketId, videoAlbum) in videoAlbums) {
+            val existing = merged[bucketId]
+            if (existing == null) {
+                merged[bucketId] = videoAlbum
+            } else {
+                merged[bucketId] = existing.copy(
+                    itemCount = existing.itemCount + videoAlbum.itemCount
+                )
+            }
+        }
+
+        return merged.values.toList()
     }
 
     fun deleteMedia(uri: Uri): Boolean {
