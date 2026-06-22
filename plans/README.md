@@ -14,6 +14,9 @@ fully before starting, honor its STOP conditions, and update your row when done.
 | 004  | Fix wrong item shown when navigating from album to viewer | P1 | S | — | DONE ✅ |
 | 005  | Limit full-res image decoding size in ViewerScreen | P1 | XS | — | DONE ✅ |
 | 006  | Cache MediaRepository.loadMedia() results | P1 | S | — | DONE ✅ |
+| 007  | Replace O(n) indexOf with O(1) ID map in grids | P2 | XS | — | DONE ✅ |
+| 008  | Remove crossfade from grid thumbnails | P3 | XS | — | DONE ✅ |
+| 009  | Move SimpleDateFormat to companion object | P3 | XS | — | DONE ✅ |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 
