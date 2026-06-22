@@ -61,7 +61,6 @@ import io.github.kardeiro.gallery.data.MediaRepository
 import io.github.kardeiro.gallery.data.model.MediaItem
 import io.github.kardeiro.gallery.data.model.MediaType
 import java.util.Locale
-import io.github.kardeiro.gallery.data.model.MediaItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
