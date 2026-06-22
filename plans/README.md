@@ -27,13 +27,29 @@ fully before starting, honor its STOP conditions, and update your row when done.
 | 017  | Move MediaStore queries off the main thread | P1 | S | 016 | DONE ✅ |
 | 018  | Remember Coil ImageRequest objects in media composables | P2 | S | — | DONE ✅ |
 | 019  | Defer ExoPlayer creation to the visible video page | P2 | S | — | DONE ✅ |
+| 020  | Introduce an expressive Material 3 theme foundation | P1 | M | — | DONE ✅ |
+| 021  | Redesign gallery and album grids with expressive media cards | P1 | M | 020 | DONE ✅ |
+| 022  | Redesign viewer chrome as immersive expressive overlays | P1 | M | 020 | DONE ✅ |
+| 023  | Add expressive empty, permission, loading, and feedback states | P2 | M | 020 | DONE ✅ |
+| 024  | Add Material motion polish and accessibility validation | P2 | M | 020, 021, 022, 023 | DONE ✅ |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale — finding fixed independently or approach abandoned)
 
 ## Dependency notes
 
 - 017 should follow 016 so the coroutine/threading change is applied once to the shared data layer instead of duplicated across per-screen repository instances.
+- 021, 022, and 023 should follow 020 so screens share the same expressive shape, spacing, motion, and color tokens instead of hardcoding visual decisions per screen.
+- 024 should follow 020-023 because it validates and polishes the completed UI system rather than designing isolated components.
 
 ## Findings considered and rejected
 
 - Removing all Coil crossfade globally was considered but rejected for now: `GalleryScreen` and `AlbumDetailScreen` already avoid per-request crossfade for dense grids, and the remaining app-level default has lower measured leverage than avoiding repeated MediaStore scans, main-thread queries, and off-screen video player setup.
+
+## UI QA checklist
+
+- Test light and dark mode.
+- Test large font/display size.
+- Test TalkBack navigation through gallery, albums, viewer controls, dialogs, and state cards.
+- Test small phone portrait and landscape.
+- Test at least one video item.
+- Test empty gallery and no-permission states.

@@ -20,10 +20,60 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = FallbackSecondaryContainer,
     onSecondaryContainer = FallbackOnSecondaryContainer,
     tertiary = FallbackTertiary,
+    onTertiary = FallbackOnTertiary,
+    tertiaryContainer = FallbackTertiaryContainer,
+    onTertiaryContainer = FallbackOnTertiaryContainer,
     background = FallbackBackground,
     onBackground = FallbackOnBackground,
     surface = FallbackSurface,
     onSurface = FallbackOnSurface,
+    surfaceVariant = FallbackSurfaceVariant,
+    onSurfaceVariant = FallbackOnSurfaceVariant,
+    surfaceContainerLowest = FallbackSurfaceContainerLowest,
+    surfaceContainerLow = FallbackSurfaceContainerLow,
+    surfaceContainer = FallbackSurfaceContainer,
+    surfaceContainerHigh = FallbackSurfaceContainerHigh,
+    surfaceContainerHighest = FallbackSurfaceContainerHighest,
+    outline = FallbackOutline,
+    outlineVariant = FallbackOutlineVariant,
+    scrim = FallbackScrim,
+    error = FallbackError,
+    onError = FallbackOnError,
+    errorContainer = FallbackErrorContainer,
+    onErrorContainer = FallbackOnErrorContainer,
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = DarkFallbackPrimary,
+    onPrimary = DarkFallbackOnPrimary,
+    primaryContainer = DarkFallbackPrimaryContainer,
+    onPrimaryContainer = DarkFallbackOnPrimaryContainer,
+    secondary = DarkFallbackSecondary,
+    onSecondary = DarkFallbackOnSecondary,
+    secondaryContainer = DarkFallbackSecondaryContainer,
+    onSecondaryContainer = DarkFallbackOnSecondaryContainer,
+    tertiary = DarkFallbackTertiary,
+    onTertiary = DarkFallbackOnTertiary,
+    tertiaryContainer = DarkFallbackTertiaryContainer,
+    onTertiaryContainer = DarkFallbackOnTertiaryContainer,
+    background = DarkFallbackBackground,
+    onBackground = DarkFallbackOnBackground,
+    surface = DarkFallbackSurface,
+    onSurface = DarkFallbackOnSurface,
+    surfaceVariant = DarkFallbackSurfaceVariant,
+    onSurfaceVariant = DarkFallbackOnSurfaceVariant,
+    surfaceContainerLowest = DarkFallbackSurfaceContainerLowest,
+    surfaceContainerLow = DarkFallbackSurfaceContainerLow,
+    surfaceContainer = DarkFallbackSurfaceContainer,
+    surfaceContainerHigh = DarkFallbackSurfaceContainerHigh,
+    surfaceContainerHighest = DarkFallbackSurfaceContainerHighest,
+    outline = DarkFallbackOutline,
+    outlineVariant = DarkFallbackOutlineVariant,
+    scrim = DarkFallbackScrim,
+    error = DarkFallbackError,
+    onError = DarkFallbackOnError,
+    errorContainer = DarkFallbackErrorContainer,
+    onErrorContainer = DarkFallbackOnErrorContainer,
 )
 
 @Composable
@@ -37,13 +87,14 @@ fun GalleryTheme(
             if (darkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
         }
-        darkTheme -> darkColorScheme()
+        darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = GalleryTypography,
+        shapes = GalleryShapes,
         content = content
     )
 }
